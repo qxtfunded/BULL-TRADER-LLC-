@@ -11,24 +11,45 @@
   onScroll();
   window.addEventListener('scroll', onScroll, { passive: true });
 
-  /* ---------- Mobile menu ---------- */
+  /* ---------- Mobile menu (full-screen overlay) ---------- */
   const navToggle = document.getElementById('nav-toggle');
   const mobileMenu = document.getElementById('mobile-menu');
 
-  const closeMobileMenu = () => {
-    mobileMenu.classList.remove('open');
-    navToggle.setAttribute('aria-expanded', 'false');
-    navToggle.setAttribute('aria-label', 'Open menu');
+  const openMobileMenu = () => {
+    mobileMenu.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    navToggle.setAttribute('aria-expanded', 'true');
+    navToggle.setAttribute('aria-label', 'Close menu');
+    requestAnimationFrame(() => mobileMenu.classList.add('show'));
+    document.addEventListener('keydown', onMobileMenuKeydown);
   };
 
+  const closeMobileMenu = () => {
+    mobileMenu.classList.remove('show');
+    document.body.style.overflow = '';
+    navToggle.setAttribute('aria-expanded', 'false');
+    navToggle.setAttribute('aria-label', 'Open menu');
+    document.removeEventListener('keydown', onMobileMenuKeydown);
+    const finish = () => mobileMenu.classList.remove('open');
+    if (reducedMotion) finish();
+    else setTimeout(finish, 260);
+  };
+
+  function onMobileMenuKeydown(e) {
+    if (e.key === 'Escape') closeMobileMenu();
+  }
+
   navToggle.addEventListener('click', () => {
-    const isOpen = mobileMenu.classList.toggle('open');
-    navToggle.setAttribute('aria-expanded', String(isOpen));
-    navToggle.setAttribute('aria-label', isOpen ? 'Close menu' : 'Open menu');
+    if (mobileMenu.classList.contains('open')) closeMobileMenu();
+    else openMobileMenu();
   });
 
   mobileMenu.querySelectorAll('a').forEach((link) => {
     link.addEventListener('click', closeMobileMenu);
+  });
+
+  window.matchMedia('(min-width: 861px)').addEventListener('change', (e) => {
+    if (e.matches) closeMobileMenu();
   });
 
   /* ---------- Active section highlighting ---------- */
